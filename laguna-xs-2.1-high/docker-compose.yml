@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Main backend service with multiple entrypoints
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: development
+    container_name: express-backend
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - DB_PATH=/app/data/database.sqlite
+      - NODE_ENV=development
+    volumes:
+      - db-data:/app/data
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./ecosystem.config.js:/app/ecosystem.config.js
+    working_dir: /app
+    command: ["/bin/sh", "-c", "./entrypoints/backend.sh"]
+    restart: unless-stopped
+    depends_on:
+      - db-init
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Database initialization service
+  db-init:
+    image: alpine:latest
+    container_name: sqlite-db-init
+    volumes:
+      - db-data:/data
+    entrypoint: ["/bin/sh", "-c", "mkdir -p /data && cd /data && touch database.sqlite && echo 'Database initialized'"]
+    restart: "no"
+
+  # Production backend (alternative entrypoint)
+  backend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: express-backend-prod
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - DB_PATH=/app/data/database.sqlite
+      - NODE_ENV=production
+    volumes:
+      - db-data:/app/data
+      - ./dist:/app/dist
+      - ./ecosystem.config.js:/app/ecosystem.config.js
+    working_dir: /app
+    command: ["/bin/sh", "-c", "./entrypoints/prod.sh"]
+    restart: unless-stopped
+    depends_on:
+      - db-init
+
+volumes:
+  db-data:

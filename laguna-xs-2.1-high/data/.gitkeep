@@ -1,0 +1,3 @@
+# Data directory for SQLite database
+# Database files will be created here at runtime
+.gitkeep

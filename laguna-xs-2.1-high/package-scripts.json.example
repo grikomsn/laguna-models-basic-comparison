@@ -1,0 +1,18 @@
+# Example: Use with pintask or similar package
+# npm run pm2.start -> pm2 start ecosystem.config.js
+
+# PM2 scripts you can add to package.json scripts:
+# "pm2.start": "pm2 start ecosystem.config.js"
+# "pm2.stop": "pm2 stop all"
+# "pm2.restart": "pm2 restart all"
+# "pm2.delete": "pm2 delete all"
+# "pm2.logs": "pm2 logs"
+# "pm2.monit": "pm2 monit"
+
+# For production, use pm2-runtime in Dockerfile
+apps:
+  - name: 'node-express-sqlite-pm2-example'
+    script: 'src/server.ts'
+    interpreter: 'tsx'
+    instances: 1
+    exec_mode: 'fork'
